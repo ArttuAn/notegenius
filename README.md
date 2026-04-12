@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NoteGenius
+
+A self-hostable, open-source NotebookLM alternative powered by **Claude AI** (claude-sonnet-4-6).
+
+Upload documents, paste text, add web URLs or YouTube videos — then chat with your sources, generate insights, and take notes, all in one workspace.
+
+## Why NoteGenius > NotebookLM
+
+| Feature | NoteGenius | NotebookLM |
+|---------|-----------|------------|
+| AI Model | Claude (superior reasoning) | Gemini |
+| Self-hostable | ✅ Yes | ❌ No |
+| Open source | ✅ Yes | ❌ No |
+| Source limits | ✅ Unlimited | ❌ 50 sources |
+| Inline citation popovers | ✅ Show exact passages | ⚠️ Basic |
+| Notes panel | ✅ Markdown notes alongside chat | ⚠️ Limited |
+| Generation types | ✅ 7 types | ⚠️ Fewer |
+| Local data storage | ✅ SQLite, your machine | ❌ Google cloud |
+| Dark mode | ✅ Built-in | ❌ Light only |
+
+## Features
+
+- **Multi-source notebooks** — PDF upload, web URLs, YouTube videos (auto-transcript), plain text
+- **Grounded AI chat** — Answers sourced from your documents with inline `[1]` citation chips. Click any citation to see the exact passage.
+- **7 generation types** — Executive Summary, FAQ, Study Guide, Timeline, Key Topics, Concept Map, Podcast Script
+- **Notes panel** — Markdown notes with auto-save, pin, and per-notebook organization
+- **FTS5 retrieval** — Fast SQLite full-text search, no vector DB or Python required
+- **Streaming** — All AI responses stream in real-time
+- **Dark mode** — System, light, or dark theme
+- **100% local** — Only external dependency is the Claude API key
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router) + TypeScript
+- **Styling**: Tailwind CSS v4 + Radix UI primitives
+- **AI**: Anthropic Claude API (`claude-sonnet-4-6`)
+- **Database**: SQLite via `better-sqlite3` with FTS5 for full-text search
+- **Ingestion**: `pdf-parse`, `cheerio`, `youtube-transcript`
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A Claude API key from [console.anthropic.com](https://console.anthropic.com)
+
+### Installation
+
+```bash
+git clone https://github.com/your-username/notegenius
+cd notegenius
+npm install
+```
+
+### Configuration
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and add your CLAUDE_API_KEY
+```
+
+### Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The SQLite database is created automatically at `./data/notegenius.db` on first run.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  api/           # REST API routes (notebooks, sources, chat, generate, notes)
+  notebook/[id]  # Notebook workspace page
+  notebooks/     # Notebooks list page
+lib/
+  ai/            # Claude client, prompts, streaming chat & generation
+  db/            # SQLite schema, migrations, typed query helpers
+  ingestion/     # PDF, URL, YouTube, text extractors + chunker
+components/
+  notebook/      # SourcesPanel, ChatPanel, GeneratePanel, NotesPanel
+  notebooks/     # Notebooks grid page
+  ui/            # Shared UI primitives (Button, Dialog, etc.)
+```
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `CLAUDE_API_KEY` | ✅ | — | Your Anthropic API key |
+| `DATABASE_URL` | ❌ | `./data/notegenius.db` | Custom SQLite path |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
