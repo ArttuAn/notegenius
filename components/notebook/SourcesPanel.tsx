@@ -47,9 +47,10 @@ export function SourcesPanel({ notebookId, sources, onSourceAdded, onSourceUpdat
     setUploading(type);
     setAdding(false);
 
-    // Optimistic add
+    // Optimistic placeholder — we'll replace it once we get the real ID
+    const tempId = `temp_${Date.now()}`;
     const tempSource: Source = {
-      id: `temp_${Date.now()}`,
+      id: tempId,
       title: tempTitle,
       type,
       status: "processing",
@@ -58,36 +59,47 @@ export function SourcesPanel({ notebookId, sources, onSourceAdded, onSourceUpdat
     };
     onSourceAdded(tempSource);
 
+    // Track the real source ID once the server assigns one
+    let realSourceId: string | null = null;
+
     try {
       const res = await fetch("/api/sources", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Upload failed");
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
-      let finalSource: Source | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const text = decoder.decode(value);
-        const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter((l) => l.startsWith("data: "));
         for (const line of lines) {
           const data = JSON.parse(line.slice(6));
-          if (data.sourceId) finalSource = { ...tempSource, id: data.sourceId, status: data.status };
-          if (data.status === "ready" && finalSource) {
-            // Fetch actual source data
-            const sr = await fetch(`/api/sources/${data.sourceId}`);
+
+          if (data.sourceId && !realSourceId) {
+            // First event: server assigned a real ID — swap the temp source out
+            const rid: string = data.sourceId;
+            realSourceId = rid;
+            onSourceDeleted(tempId);
+            onSourceAdded({ ...tempSource, id: rid, status: "processing" });
+          }
+
+          if (data.status === "ready" && realSourceId) {
+            const sr = await fetch(`/api/sources/${realSourceId}`);
             const full = await sr.json();
-            onSourceUpdated({ ...tempSource, ...full });
+            onSourceUpdated(full as Source);
             toast.success("Source added successfully");
           } else if (data.status === "error") {
-            onSourceUpdated({ ...tempSource, status: "error" });
+            if (realSourceId) onSourceUpdated({ ...tempSource, id: realSourceId as string, status: "error" });
+            else onSourceDeleted(tempId);
             toast.error(`Failed: ${data.error}`);
           }
         }
       }
     } catch (err) {
-      onSourceUpdated({ ...tempSource, status: "error" });
+      if (realSourceId) onSourceUpdated({ ...tempSource, id: realSourceId as string, status: "error" });
+      else onSourceDeleted(tempId);
       toast.error("Upload failed");
     } finally {
       setUploading(null);
