@@ -5,14 +5,13 @@
 <br />
 <br />
 
-**The open-source NotebookLM alternative — powered by Claude AI.**  
+**The open-source NotebookLM alternative**  
 Upload sources, chat with your documents, generate insights. 100% local. No limits.
 
 <br />
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Claude AI](https://img.shields.io/badge/Claude-Sonnet%204.6-7C3AED?logo=anthropic&logoColor=white)](https://anthropic.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![SQLite](https://img.shields.io/badge/SQLite-FTS5-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
@@ -26,7 +25,6 @@ Upload sources, chat with your documents, generate insights. 100% local. No limi
 
 | | NoteGenius | NotebookLM |
 |--|--|--|
-| **AI Model** | Claude Sonnet 4.6 (superior reasoning) | Gemini |
 | **Self-hostable** | ✅ | ❌ |
 | **Open source** | ✅ | ❌ |
 | **Source limits** | ✅ Unlimited | ❌ 50 |
