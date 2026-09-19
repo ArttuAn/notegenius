@@ -23,9 +23,31 @@ function createDb() {
   return instance;
 }
 
-export const db: Database.Database =
-  globalThis.__db ?? createDb();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.__db = db;
+// Opened on first use, never at import time.
+//
+// `next build` collects page data by importing every route in several worker
+// processes at once. Connecting at module scope meant each of them opened the
+// same SQLite file and ran the migration concurrently, and the build died with
+// SQLITE_BUSY before it could emit anything. Nothing touches the database
+// until a request actually arrives, so there is no reason to connect earlier.
+function getDb(): Database.Database {
+  if (!globalThis.__db) {
+    globalThis.__db = createDb();
+  }
+  return globalThis.__db;
 }
+
+export const db = new Proxy({} as Database.Database, {
+  get(_target, property) {
+    const real = getDb() as unknown as Record<string | symbol, unknown>;
+    const value = real[property];
+    return typeof value === "function" ? value.bind(real) : value;
+  },
+  set(_target, property, value) {
+    (getDb() as unknown as Record<string | symbol, unknown>)[property] = value;
+    return true;
+  },
+  has(_target, property) {
+    return property in (getDb() as unknown as object);
+  },
+});

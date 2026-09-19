@@ -242,7 +242,7 @@ function MessageBubble({ message }: { message: Message }) {
                     <span className="truncate">{citation.sourceTitle}</span>
                   </div>
                   <p className="text-muted-foreground leading-relaxed line-clamp-4">
-                    "{citation.passage}"
+                    &ldquo;{citation.passage}&rdquo;
                   </p>
                 </div>
               </PopoverContent>

@@ -14,6 +14,7 @@ Upload sources, chat with your documents, generate insights. 100% local. No limi
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![SQLite](https://img.shields.io/badge/SQLite-FTS5-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
+[![ci](https://github.com/ArttuAn/notegenius/actions/workflows/ci.yml/badge.svg)](https://github.com/ArttuAn/notegenius/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 [![GitHub Repo stars](https://img.shields.io/github/stars/ArttuAn/notegenius?style=flat&color=7C3AED)](https://github.com/ArttuAn/notegenius/stargazers)
 
