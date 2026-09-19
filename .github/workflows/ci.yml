@@ -16,6 +16,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       # No secret is needed to compile: the key is only read when a request
       # is served, and the database is opened lazily for the same reason.
       - run: npm run build

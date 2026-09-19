@@ -37,10 +37,16 @@ CREATE TABLE IF NOT EXISTS source_chunks (
 CREATE INDEX IF NOT EXISTS idx_chunks_source ON source_chunks(source_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_notebook ON source_chunks(notebook_id);
 
+-- External content: fts5 reads column values back out of source_chunks BY
+-- NAME, so every column named here must exist there. A column named
+-- chunk_id did not, and any query that read a column value — bm25(), or
+-- selecting notebook_id — failed with "no such column: T.chunk_id". A bare
+-- MATCH still worked, because that only touches the index, which is why the
+-- table looked healthy while search returned nothing.
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts
   USING fts5(
     text,
-    chunk_id UNINDEXED,
+    id UNINDEXED,
     source_id UNINDEXED,
     notebook_id UNINDEXED,
     content='source_chunks',
@@ -49,21 +55,21 @@ CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts
 
 CREATE TRIGGER IF NOT EXISTS chunks_fts_insert
   AFTER INSERT ON source_chunks BEGIN
-    INSERT INTO chunks_fts(rowid, text, chunk_id, source_id, notebook_id)
+    INSERT INTO chunks_fts(rowid, text, id, source_id, notebook_id)
     VALUES (new.rowid, new.text, new.id, new.source_id, new.notebook_id);
   END;
 
 CREATE TRIGGER IF NOT EXISTS chunks_fts_delete
   BEFORE DELETE ON source_chunks BEGIN
-    INSERT INTO chunks_fts(chunks_fts, rowid, text, chunk_id, source_id, notebook_id)
+    INSERT INTO chunks_fts(chunks_fts, rowid, text, id, source_id, notebook_id)
     VALUES ('delete', old.rowid, old.text, old.id, old.source_id, old.notebook_id);
   END;
 
 CREATE TRIGGER IF NOT EXISTS chunks_fts_update
   AFTER UPDATE ON source_chunks BEGIN
-    INSERT INTO chunks_fts(chunks_fts, rowid, text, chunk_id, source_id, notebook_id)
+    INSERT INTO chunks_fts(chunks_fts, rowid, text, id, source_id, notebook_id)
     VALUES ('delete', old.rowid, old.text, old.id, old.source_id, old.notebook_id);
-    INSERT INTO chunks_fts(rowid, text, chunk_id, source_id, notebook_id)
+    INSERT INTO chunks_fts(rowid, text, id, source_id, notebook_id)
     VALUES (new.rowid, new.text, new.id, new.source_id, new.notebook_id);
   END;
 

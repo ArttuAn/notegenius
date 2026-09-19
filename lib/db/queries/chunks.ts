@@ -63,7 +63,7 @@ export function searchChunks(
   let sql = `
     SELECT sc.*, bm25(chunks_fts) AS score, s.title AS sourceTitle
     FROM chunks_fts
-    JOIN source_chunks sc ON chunks_fts.chunk_id = sc.id
+    JOIN source_chunks sc ON chunks_fts.id = sc.id
     JOIN sources s ON sc.source_id = s.id
     WHERE chunks_fts MATCH ?
       AND chunks_fts.notebook_id = ?
@@ -80,7 +80,11 @@ export function searchChunks(
 
   try {
     return db.prepare(sql).all(...params) as (SourceChunk & { score: number; sourceTitle: string })[];
-  } catch {
+  } catch (error) {
+    // Returning [] keeps a bad query from taking the chat down, but it must
+    // not be silent: this swallowed a schema bug that made every search
+    // return nothing for the life of the project.
+    console.error("searchChunks failed", error);
     return [];
   }
 }

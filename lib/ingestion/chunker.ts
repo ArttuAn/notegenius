@@ -39,6 +39,14 @@ export function chunkText(
       index++;
     }
 
+    // The window has reached the end of the document, so there is nothing
+    // left to advance into. Without this, `start` creeps forward one
+    // character at a time while `end` stays pinned at text.length, emitting
+    // one near-duplicate tail chunk per overlap character — 200 of them by
+    // default, on every document. They bloat the index and crowd real
+    // passages out of the top-k search results.
+    if (end >= text.length) break;
+
     start = Math.max(start + 1, end - overlap);
   }
 
