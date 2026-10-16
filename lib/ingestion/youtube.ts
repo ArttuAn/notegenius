@@ -1,22 +1,10 @@
 import { YoutubeTranscript } from "youtube-transcript";
-
-function extractVideoId(url: string): string | null {
-  const patterns = [
-    /youtu\.be\/([A-Za-z0-9_-]{11})/,
-    /[?&]v=([A-Za-z0-9_-]{11})/,
-    /youtube\.com\/embed\/([A-Za-z0-9_-]{11})/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
+import { youtubeVideoId } from "./youtube-url";
 
 export async function extractYoutube(
   url: string
 ): Promise<{ title: string; text: string }> {
-  const videoId = extractVideoId(url);
+  const videoId = youtubeVideoId(url);
   if (!videoId) throw new Error("Invalid YouTube URL");
 
   const transcript = await YoutubeTranscript.fetchTranscript(videoId);
