@@ -1,9 +1,12 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { streamChat } from "@/lib/ai/chat";
 import { listMessages, insertMessage } from "@/lib/db/queries/sessions";
 import type { Citation } from "@/lib/db/schema";
 
 export async function POST(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { notebookId, sessionId, message, sourceIds } = await req.json();
 
   if (!notebookId || !sessionId || !message) {

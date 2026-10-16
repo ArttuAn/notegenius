@@ -1,7 +1,10 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { listSessions, createSession, listMessages } from "@/lib/db/queries/sessions";
 
 export async function GET(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const notebookId = req.nextUrl.searchParams.get("notebookId");
   if (!notebookId) return NextResponse.json({ error: "notebookId required" }, { status: 400 });
   const sessions = listSessions(notebookId);
@@ -9,6 +12,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { notebookId, title } = await req.json();
   if (!notebookId) return NextResponse.json({ error: "notebookId required" }, { status: 400 });
   const session = createSession(notebookId, title ?? "New Chat");

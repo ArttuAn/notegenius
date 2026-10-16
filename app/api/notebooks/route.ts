@@ -1,13 +1,18 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { listNotebooks, createNotebook } from "@/lib/db/queries/notebooks";
 import { createSession } from "@/lib/db/queries/sessions";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const notebooks = listNotebooks();
   return NextResponse.json(notebooks);
 }
 
 export async function POST(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { title, description } = await req.json();
   if (!title) return NextResponse.json({ error: "Title required" }, { status: 400 });
   const notebook = createNotebook(title, description);
