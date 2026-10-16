@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/cn";
+import { youtubeVideoId } from "@/lib/ingestion/youtube-url";
 
 type Source = {
   id: string;
@@ -119,7 +120,7 @@ export function SourcesPanel({ notebookId, sources, onSourceAdded, onSourceUpdat
 
   async function addUrl() {
     if (!url.trim()) return;
-    const isYoutube = url.includes("youtube.com") || url.includes("youtu.be");
+    const isYoutube = youtubeVideoId(url.trim()) !== null;
     const type = isYoutube ? "youtube" : "url";
     const fd = new FormData();
     fd.append("notebookId", notebookId);
