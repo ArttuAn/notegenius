@@ -1,15 +1,8 @@
-import axios from "axios";
+import { fetchPublicPage } from "./public-http";
 import * as cheerio from "cheerio";
 
 export async function extractUrl(url: string): Promise<{ title: string; text: string }> {
-  const { data } = await axios.get(url, {
-    timeout: 15000,
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (compatible; NoteGenius/1.0; +https://github.com/notegenius)",
-    },
-    maxContentLength: 5 * 1024 * 1024, // 5MB max
-  });
+  const data = await fetchPublicPage(url);
 
   const $ = cheerio.load(data);
 

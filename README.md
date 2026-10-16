@@ -6,7 +6,7 @@
 <br />
 
 **The open-source NotebookLM alternative**  
-Upload sources, chat with your documents, generate insights. 100% local. No limits.
+Upload sources, chat with your documents, generate insights. Local document storage; cloud AI through Anthropic. Provider usage limits and charges apply.
 
 <br />
 
@@ -255,3 +255,25 @@ MIT — use it, fork it, ship it.
 Built with [Claude Code](https://claude.ai/code) · Powered by [Anthropic Claude](https://anthropic.com)
 
 </div>
+
+## Private owner access and data handling
+
+Set `NOTEGENIUS_PASSWORD` to a unique random value of at least 32 characters
+before starting. The browser prompts for username `admin` (override with
+`NOTEGENIUS_USERNAME`) and that password. All pages and API handlers require
+the same owner credentials. This is a single-owner app: everyone given those
+credentials has access to the same notebooks. It does not support separate
+user accounts or tenant isolation. Missing credentials fail closed.
+
+Loopback origins are allowed by default. For a deliberate remote deployment,
+set `NOTEGENIUS_ORIGIN` to the exact public origin, without a trailing slash,
+and use HTTPS. Other hosts and browser origins are rejected. URL imports allow
+only public HTTP(S) targets on standard ports, validate every redirect, pin the
+verified DNS result to the connection, and cap response size and duration.
+
+Documents are stored in local SQLite. Chat and generation send selected source
+excerpts, prompts, and conversation context to Anthropic. URL/YouTube import
+also contacts external source providers. Do not use confidential data unless
+you are comfortable with those transfers and the provider's data policy.
+Provider spending caps are a separate deployment control. Development and tests
+now require Node 22.12 or newer.

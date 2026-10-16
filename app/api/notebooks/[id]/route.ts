@@ -1,3 +1,4 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getNotebook,
@@ -10,6 +11,8 @@ import { listGenerations } from "@/lib/db/queries/generations";
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  const denied = authorizeRequest(_req);
+  if (denied) return denied;
   const { id } = await params;
   const notebook = getNotebook(id);
   if (!notebook) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -19,6 +22,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { id } = await params;
   const body = await req.json();
   const updated = updateNotebook(id, body);
@@ -27,6 +32,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const denied = authorizeRequest(_req);
+  if (denied) return denied;
   const { id } = await params;
   deleteNotebook(id);
   return NextResponse.json({ ok: true });

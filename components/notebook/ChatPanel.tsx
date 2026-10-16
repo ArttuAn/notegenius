@@ -130,6 +130,9 @@ export function ChatPanel({ notebookId, sessionId, sources }: Props) {
 
   return (
     <div className="flex flex-col h-full">
+      <p className="px-4 py-2 text-xs text-muted-foreground border-b">
+        Chat sends your prompt, conversation context, and selected source excerpts to Anthropic.
+      </p>
       <ScrollArea className="flex-1 px-4">
         <div className="py-4 space-y-4 max-w-3xl mx-auto">
           {messages.length === 0 && !streaming && (

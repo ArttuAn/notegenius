@@ -37,41 +37,39 @@ type Generation = {
   created_at: number;
 };
 
-type Session = {
-  id: string;
-  title: string;
-  created_at: number;
-};
-
 export function NotebookWorkspace({ notebookId }: { notebookId: string }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [notebook, setNotebook] = useState<Notebook | null>(null);
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("chat");
 
-  const loadNotebook = useCallback(async () => {
-    try {
-      const [nbRes, sessRes] = await Promise.all([
-        fetch(`/api/notebooks/${notebookId}`),
-        fetch(`/api/chat/sessions?notebookId=${notebookId}`),
-      ]);
-      if (!nbRes.ok) { router.push("/notebooks"); return; }
-      const nb = await nbRes.json();
-      const sess = await sessRes.json();
-      setNotebook(nb);
-      setSessions(sess);
-      if (sess.length > 0 && !activeSessionId) setActiveSessionId(sess[0].id);
-    } catch {
-      toast.error("Failed to load notebook");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadNotebook() {
+      try {
+        const [nbRes, sessRes] = await Promise.all([
+          fetch(`/api/notebooks/${notebookId}`, { signal: controller.signal }),
+          fetch(`/api/chat/sessions?notebookId=${notebookId}`, { signal: controller.signal }),
+        ]);
+        if (!nbRes.ok) {
+          if (!controller.signal.aborted) router.push("/notebooks");
+          return;
+        }
+        const [nb, sessions] = await Promise.all([nbRes.json(), sessRes.json()]);
+        if (controller.signal.aborted) return;
+        setNotebook(nb);
+        setActiveSessionId(sessions[0]?.id ?? null);
+      } catch {
+        if (!controller.signal.aborted) toast.error("Failed to load notebook");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     }
-  }, [notebookId, router, activeSessionId]);
-
-  useEffect(() => { loadNotebook(); }, [notebookId]);
+    void loadNotebook();
+    return () => controller.abort();
+  }, [notebookId, router]);
 
   const handleSourceAdded = useCallback((source: Source) => {
     setNotebook((prev) => prev ? { ...prev, sources: [...prev.sources, source] } : prev);

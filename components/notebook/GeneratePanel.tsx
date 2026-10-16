@@ -100,6 +100,9 @@ export function GeneratePanel({ notebookId, sources, generations, onGenerationAd
 
   return (
     <div className="flex flex-col h-full">
+      <p className="px-4 py-2 text-xs text-muted-foreground border-b">
+        Generation sends selected source excerpts and your request to Anthropic.
+      </p>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4 max-w-3xl mx-auto">
           {/* Generation type buttons */}

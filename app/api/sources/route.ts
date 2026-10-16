@@ -1,9 +1,12 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { createSource } from "@/lib/db/queries/sources";
 import { ingestSource } from "@/lib/ingestion";
 import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const formData = await req.formData();
   const notebookId = formData.get("notebookId") as string;
   const type = formData.get("type") as "pdf" | "url" | "youtube" | "text";

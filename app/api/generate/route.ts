@@ -1,3 +1,4 @@
+import { authorizeRequest } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { streamGenerate } from "@/lib/ai/generate";
 import { createGeneration, listGenerations, deleteGeneration } from "@/lib/db/queries/generations";
@@ -14,12 +15,16 @@ const GENERATION_TITLES: Record<string, string> = {
 };
 
 export async function GET(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const notebookId = req.nextUrl.searchParams.get("notebookId");
   if (!notebookId) return NextResponse.json({ error: "notebookId required" }, { status: 400 });
   return NextResponse.json(listGenerations(notebookId));
 }
 
 export async function POST(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { notebookId, type, sourceIds } = await req.json() as {
     notebookId: string;
     type: Generation["type"];
@@ -72,6 +77,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = authorizeRequest(req);
+  if (denied) return denied;
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   deleteGeneration(id);
