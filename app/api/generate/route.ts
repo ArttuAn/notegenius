@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { streamGenerate } from "@/lib/ai/generate";
 import { createGeneration, listGenerations, deleteGeneration } from "@/lib/db/queries/generations";
 import type { Generation } from "@/lib/db/schema";
+import { requireNotebook, selectedSourceIds } from "@/lib/notebook-input";
+import { readJsonBody, requiredString, RequestError, withRequestErrors } from "@/lib/request";
 
 const GENERATION_TITLES: Record<string, string> = {
   summary: "Executive Summary",
@@ -22,18 +24,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(listGenerations(notebookId));
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestErrors(async function POST(req: NextRequest) {
   const denied = authorizeRequest(req);
   if (denied) return denied;
-  const { notebookId, type, sourceIds } = await req.json() as {
-    notebookId: string;
-    type: Generation["type"];
-    sourceIds?: string[];
-  };
-
-  if (!notebookId || !type) {
-    return NextResponse.json({ error: "notebookId and type required" }, { status: 400 });
-  }
+  const body = await readJsonBody(req);
+  const notebookId = requireNotebook(body.notebookId);
+  if (typeof body.type !== "string" || !Object.hasOwn(GENERATION_TITLES, body.type)) throw new RequestError("Invalid generation type");
+  const type = body.type as Generation["type"];
+  const sourceIds = selectedSourceIds(body.sourceIds, notebookId);
 
   let fullContent = "";
 
@@ -74,13 +72,13 @@ export async function POST(req: NextRequest) {
       Connection: "keep-alive",
     },
   });
-}
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestErrors(async function DELETE(req: NextRequest) {
   const denied = authorizeRequest(req);
   if (denied) return denied;
-  const { id } = await req.json();
-  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+  const { id: value } = await readJsonBody(req);
+  const id = requiredString(value, "id");
   deleteGeneration(id);
   return NextResponse.json({ ok: true });
-}
+});

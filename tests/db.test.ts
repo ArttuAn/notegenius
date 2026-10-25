@@ -17,6 +17,8 @@ beforeAll(() => {
 });
 
 afterAll(() => {
+  globalThis.__db?.close();
+  delete globalThis.__db;
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

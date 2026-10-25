@@ -12,7 +12,7 @@ export async function* streamGenerate(
 
   // Gather source texts
   const sources = sourceIds?.length
-    ? sourceIds.map((id) => getSource(id)).filter(Boolean)
+    ? sourceIds.map((id) => getSource(id)).filter((s) => s?.notebook_id === notebookId && s.status === "ready")
     : listSources(notebookId).filter((s) => s.status === "ready");
 
   if (sources.length === 0) {
@@ -20,9 +20,16 @@ export async function* streamGenerate(
     return;
   }
 
-  const sourceContext = sources
-    .map((s, i) => `[Source ${i + 1}: "${s!.title}"]\n${s!.raw_text?.slice(0, 8000) ?? ""}`)
-    .join("\n\n---\n\n");
+  // Bound the provider payload even when the notebook contains many sources.
+  let remaining = 64000;
+  const context: string[] = [];
+  for (const source of sources) {
+    if (remaining <= 0) break;
+    const text = `[Source ${context.length + 1}: "${source!.title}"]\n${source!.raw_text?.slice(0, 8000) ?? ""}`.slice(0, remaining);
+    context.push(text);
+    remaining -= text.length;
+  }
+  const sourceContext = context.join("\n\n---\n\n");
 
   const prompt = GENERATE_PROMPTS[type] ?? GENERATE_PROMPTS.summary;
 

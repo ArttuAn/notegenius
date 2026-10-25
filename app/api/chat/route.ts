@@ -1,17 +1,22 @@
 import { authorizeRequest } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { streamChat } from "@/lib/ai/chat";
-import { listMessages, insertMessage } from "@/lib/db/queries/sessions";
+import { getSession, listMessages, insertMessage } from "@/lib/db/queries/sessions";
+import { getSettings } from "@/lib/db/queries/settings";
+import { requireNotebook, selectedSourceIds } from "@/lib/notebook-input";
+import { readJsonBody, requiredString, RequestError, withRequestErrors } from "@/lib/request";
 import type { Citation } from "@/lib/db/schema";
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestErrors(async function POST(req: NextRequest) {
   const denied = authorizeRequest(req);
   if (denied) return denied;
-  const { notebookId, sessionId, message, sourceIds } = await req.json();
-
-  if (!notebookId || !sessionId || !message) {
-    return NextResponse.json({ error: "notebookId, sessionId, and message required" }, { status: 400 });
-  }
+  const body = await readJsonBody(req);
+  const notebookId = requireNotebook(body.notebookId);
+  const sessionId = requiredString(body.sessionId, "sessionId");
+  const message = requiredString(body.message, "message", 16000);
+  const sourceIds = selectedSourceIds(body.sourceIds, notebookId);
+  const session = getSession(sessionId);
+  if (!session || session.notebook_id !== notebookId) throw new RequestError("Chat session does not belong to this notebook", 404);
 
   // Save user message
   insertMessage(sessionId, notebookId, "user", message);
@@ -24,9 +29,7 @@ export async function POST(req: NextRequest) {
   }));
 
   // Get settings
-  const { db } = await import("@/lib/db");
-  const topKRow = db.prepare("SELECT value FROM settings WHERE key = 'top_k'").get() as { value: string } | null;
-  const topK = parseInt(topKRow?.value ?? "8");
+  const topK = getSettings().top_k;
 
   let fullText = "";
   let citations: Citation[] = [];
@@ -73,4 +76,4 @@ export async function POST(req: NextRequest) {
       Connection: "keep-alive",
     },
   });
-}
+});

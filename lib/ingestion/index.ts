@@ -10,6 +10,7 @@ import {
 import { insertChunks } from "../db/queries/chunks";
 import { touchNotebook } from "../db/queries/notebooks";
 import { db } from "../db";
+import { getSettings } from "../db/queries/settings";
 
 export async function ingestSource(sourceId: string): Promise<void> {
   const source = getSource(sourceId);
@@ -41,12 +42,8 @@ export async function ingestSource(sourceId: string): Promise<void> {
     }
 
     // Get chunk settings
-    const settings = db
-      .prepare("SELECT key, value FROM settings WHERE key IN ('chunk_size', 'chunk_overlap')")
-      .all() as { key: string; value: string }[];
-    const settingsMap = Object.fromEntries(settings.map((s) => [s.key, parseInt(s.value)]));
-    const chunkSize = settingsMap.chunk_size ?? 1200;
-    const chunkOverlap = settingsMap.chunk_overlap ?? 200;
+    if (extracted.text.length > 2 * 1024 * 1024) throw new Error("Extracted source exceeds 2 Mi characters");
+    const { chunk_size: chunkSize, chunk_overlap: chunkOverlap } = getSettings();
 
     const chunks = chunkText(extracted.text, chunkSize, chunkOverlap);
 
