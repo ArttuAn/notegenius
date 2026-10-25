@@ -22,7 +22,9 @@ export function prepareDatabasePath(configured: string | undefined, cwd = proces
   if (realAncestor !== realRoot && !realAncestor.startsWith(realRoot + path.sep)) {
     throw new Error("Database directory escapes the data directory through a symbolic link");
   }
-  if (fs.existsSync(candidate) && !fs.realpathSync(candidate).startsWith(realRoot + path.sep)) {
+  // Mutable database files are runtime data and must not enter the server bundle.
+  if (fs.existsSync(/* turbopackIgnore: true */ candidate) &&
+      !fs.realpathSync(/* turbopackIgnore: true */ candidate).startsWith(realRoot + path.sep)) {
     throw new Error("Database file escapes the data directory through a symbolic link");
   }
   fs.mkdirSync(path.dirname(candidate), { recursive: true });
