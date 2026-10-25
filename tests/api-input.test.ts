@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -26,7 +25,8 @@ async function load() {
   };
 }
 beforeAll(async () => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), "notegenius-input-"));
+  fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
+  dir = fs.mkdtempSync(path.join(process.cwd(), "data", "notegenius-input-"));
   vi.stubEnv("DATABASE_URL", path.join(dir, "test.db"));
   vi.stubEnv("NOTEGENIUS_PASSWORD", "p".repeat(32));
   vi.stubEnv("NOTEGENIUS_USERNAME", "admin");

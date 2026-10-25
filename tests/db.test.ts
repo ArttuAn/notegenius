@@ -5,14 +5,14 @@
  * because the connection is opened on first use rather than at import time.
  */
 import fs from "fs";
-import os from "os";
 import path from "path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 let dir: string;
 
 beforeAll(() => {
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), "notegenius-test-"));
+  fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
+  dir = fs.mkdtempSync(path.join(process.cwd(), "data", "notegenius-test-"));
   process.env.DATABASE_URL = path.join(dir, "test.db");
 });
 

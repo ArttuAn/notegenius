@@ -240,7 +240,7 @@ notegenius/
 | Variable | Required | Default | Description |
 |----------|:--------:|---------|-------------|
 | `CLAUDE_API_KEY` | ✅ | — | Anthropic API key |
-| `DATABASE_URL` | ❌ | `./data/notegenius.db` | SQLite file path |
+| `DATABASE_URL` | ❌ | `./data/notegenius.db` | SQLite `.db` file inside `./data` |
 
 ---
 
@@ -297,3 +297,10 @@ Chat sessions and explicitly selected sources must belong to the requested
 notebook. Selected sources must be ready, with at most 32 IDs per request.
 These checks prevent accidental mixing of notebook data sent to Anthropic;
 the app remains a single-owner application, without separate user accounts.
+
+Database files must resolve inside the app's `data` directory. Relative paths
+are resolved from the project directory. Traversal outside `data`, sibling
+directory names such as `data-backup`, and symlinks escaping the storage root
+are rejected before creating a database. Existing deployments using an external
+`DATABASE_URL` must move the database under `data` or mount the storage volume
+at `data` before upgrading. The `data` directory itself may be a storage mount.
