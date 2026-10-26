@@ -240,7 +240,7 @@ notegenius/
 | Variable | Required | Default | Description |
 |----------|:--------:|---------|-------------|
 | `CLAUDE_API_KEY` | ✅ | — | Anthropic API key |
-| `DATABASE_URL` | ❌ | `./data/notegenius.db` | SQLite file path |
+| `DATABASE_URL` | ❌ | `./data/notegenius.db` | SQLite `.db` file inside `./data` |
 
 ---
 
@@ -277,3 +277,30 @@ also contacts external source providers. Do not use confidential data unless
 you are comfortable with those transfers and the provider's data policy.
 Provider spending caps are a separate deployment control. Development and tests
 now require Node 22.12 or newer.
+
+### Request and ingestion limits
+
+JSON API bodies are limited to 1 MiB and multipart uploads to 12 MiB, with a
+15-second body-read deadline. Requests exceeding these limits return 413 or
+408 before parsing. PDFs are limited to 10 MiB; pasted text to 1,048,576
+characters; extracted source text to 2,097,152 characters before indexing.
+PDF parser resources are released after extraction, including on failure.
+
+Settings accept only `theme` (`system`, `light`, or `dark`), `top_k` (1–32),
+`chunk_size` (256–4000), and `chunk_overlap` (0 to half the chunk size).
+Unsafe values saved by older versions fall back to safe values when read.
+Lower the overlap before lowering the chunk size if the existing overlap would
+exceed the new limit. Generation source context is capped at 64,000 characters
+plus source separators; each source contributes at most 8000 characters.
+
+Chat sessions and explicitly selected sources must belong to the requested
+notebook. Selected sources must be ready, with at most 32 IDs per request.
+These checks prevent accidental mixing of notebook data sent to Anthropic;
+the app remains a single-owner application, without separate user accounts.
+
+Database files must resolve inside the app's `data` directory. Relative paths
+are resolved from the project directory. Traversal outside `data`, sibling
+directory names such as `data-backup`, and symlinks escaping the storage root
+are rejected before creating a database. Existing deployments using an external
+`DATABASE_URL` must move the database under `data` or mount the storage volume
+at `data` before upgrading. The `data` directory itself may be a storage mount.
